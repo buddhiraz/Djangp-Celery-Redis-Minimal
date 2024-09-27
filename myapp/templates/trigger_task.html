@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Trigger</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: white;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #task-container {
+            text-align: center;
+        }
+
+        #start-button {
+            background-color: #800080;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        #task-log {
+            font-size: 18px;
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .status-log {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="task-container">
+        <button id="start-button">Start the Task</button>
+        <div id="task-log"></div>
+    </div>
+
+    <script>
+        function logStatus(message) {
+            const taskLog = document.getElementById('task-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'status-log';
+            logEntry.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            taskLog.appendChild(logEntry);
+        }
+
+        document.getElementById('start-button').addEventListener('click', function() {
+            // Log task initiation
+            logStatus('Task initiated.');
+
+            // Trigger the task
+            fetch('/trigger-task/')
+            .then(response => response.json())
+            .then(data => {
+                logStatus('Task created with ID: ' + data.task_id);
+                logStatus('Task status: Task is pending...');
+
+                // Check the task status every 2 seconds
+                let taskId = data.task_id;
+                let interval = setInterval(function() {
+                    fetch(`/check-task-status/${taskId}/`)
+                    .then(response => response.json())
+                    .then(statusData => {
+                        logStatus(`Task status: ${statusData.status}`);
+                        if (statusData.status === 'SUCCESS') {
+                            logStatus('Task completed successfully.');
+                            clearInterval(interval); // Stop checking once the task is done
+                        } else if (statusData.status === 'FAILURE') {
+                            logStatus('Task failed.');
+                            clearInterval(interval); // Stop checking on failure
+                        }
+                    });
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
