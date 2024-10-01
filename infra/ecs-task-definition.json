@@ -3,9 +3,9 @@
     "containerDefinitions": [
       {
         "name": "django",
-        "image": "<IMAGE_URL_FROM_ECR>",  
-        "cpu": 256,
+        "image": "826875819774.dkr.ecr.us-east-1.amazonaws.com/django-celery-redis-backend:latest",
         "memory": 512,
+        "cpu": 256,
         "essential": true,
         "portMappings": [
           {
@@ -14,15 +14,21 @@
           }
         ],
         "environment": [
-          { "name": "CELERY_BROKER_URL", "value": "redis://redis:6379/0" },
-          { "name": "CELERY_RESULT_BACKEND", "value": "redis://redis:6379/0" }
+          {
+            "name": "CELERY_BROKER_URL",
+            "value": "redis://redis:6379/0"
+          },
+          {
+            "name": "CELERY_RESULT_BACKEND",
+            "value": "redis://redis:6379/0"
+          }
         ]
       },
       {
         "name": "redis",
         "image": "redis:6.2",
-        "cpu": 128,
-        "memory": 256,
+        "memory": 512,
+        "cpu": 256,
         "essential": true,
         "portMappings": [
           {
@@ -30,14 +36,6 @@
             "hostPort": 6379
           }
         ]
-      },
-      {
-        "name": "celery",
-        "image": "<IMAGE_URL_FROM_ECR>",
-        "cpu": 256,
-        "memory": 512,
-        "essential": true,
-        "command": ["celery", "-A", "celery_example", "worker", "--loglevel=info"]
       }
     ]
   }
