@@ -68,34 +68,9 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = "360health-backend"
 }
 
-# Create an IAM role for ECS task execution
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs_task_execution_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# Attach the necessary policies to the IAM role
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-# Create an ECS task definition
 resource "aws_ecs_task_definition" "django_task_def" {
   family                   = "django-task"
-  container_definitions    = file("../infra/ecs-task-definition.json")  
+  container_definitions    = file("../infra/ecs-task-definition.json")
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
@@ -103,9 +78,38 @@ resource "aws_ecs_task_definition" "django_task_def" {
   cpu                      = "256"
 }
 
-# Create an ECS service
 resource "aws_ecs_service" "ecs_service" {
   name            = "360health-backend-service"
+  cluster         = aws_ecs_cluster.ecs_cluster.id
+  task_definition = aws_ecs_task_definition.django_task_def.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"  # Change this if using EC2
+}
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name               = "ecs_task_execution_role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_assume_role_policy.json
+}
+
+resource "aws_iam_policy_attachment" "ecs_task_execution_role_attachment" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  roles      = [aws_iam_role.ecs_task_execution_role.name]
+}
+
+data "aws_iam_policy_document" "ecs_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+
+}
+
+# Create an ECS service
+resource "aws_ecs_service" "ecs_service" {
+  name            = "django-celery-redis-backend-service"
   cluster         = aws_ecs_cluster.ecs_cluster.id
   task_definition = aws_ecs_task_definition.django_task_def.arn
   desired_count   = 1

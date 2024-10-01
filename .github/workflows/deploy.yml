@@ -1,69 +1,43 @@
-name: Deploy Django App to Amazon ECS using Terraform and Docker
+name: Deploy to Amazon ECS
 
 on:
   push:
-    branches:
-      - main  # Triggers on push to the 'main' branch
+    branches: [ "main" ]
 
 env:
   AWS_REGION: us-east-1             
-  ECR_REPOSITORY: 360health-backend
-  ECS_SERVICE: 360Health-backend-service-with-alb            
-  ECS_CLUSTER: 360health-backend           
+  ECR_REPOSITORY: django-celery-redis-backend
+  ECS_SERVICE: django-celery-redis-backend-service            
+  ECS_CLUSTER: django-celery-redis-backend-cluster           
   ECS_TASK_DEFINITION: ./infra/ecs-task-definition.json
-  CONTAINER_NAME: 360health-backend          
+  CONTAINER_NAME: django          
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}  
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  TERRAFORM_TOKEN: ${{ secrets.TERRAFORM_TOKEN }}
 
 permissions:
   contents: read
 
 jobs:
   deploy:
-    name: Deploy to Amazon ECS
+    name: Deploy
     runs-on: ubuntu-latest
     environment: production
 
     steps:
-    # Step 1: Check out the repository code
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    # Step 2: Set up Terraform (to manage infrastructure)
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0
-
-    # Step 3: Initialize Terraform (downloads provider plugins, sets up backend)
-    - name: Terraform Init
-      run: terraform init
-      working-directory: terraform
-
-    # Step 4: Apply Terraform (provisions ECS, ALB, etc.)
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: terraform
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        TF_API_TOKEN: ${{ secrets.TERRAFORM_TOKEN }}
-
-    # Step 5: Configure AWS credentials
     - name: Configure AWS credentials
       run: |
         echo "AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
         echo "AWS_REGION=${{ env.AWS_REGION }}" >> $GITHUB_ENV
 
-    # Step 6: Login to Amazon ECR
     - name: Login to Amazon ECR
       id: login-ecr
       run: |
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query "Account" --output text).dkr.ecr.$AWS_REGION.amazonaws.com
 
-    # Step 7: Build, tag, and push Docker image to Amazon ECR
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
       run: |
@@ -73,7 +47,16 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_ENV
 
-    # Step 8: Fill in the new image ID in the ECS task definition
+    - name: Initialize Terraform
+      working-directory: ./terraform  # Change this if your terraform files are in a different path
+      run: |
+        terraform init
+
+    - name: Apply Terraform
+      working-directory: ./terraform
+      run: |
+        terraform apply -auto-approve
+
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -82,7 +65,6 @@ jobs:
         container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ env.image }}
 
-    # Step 9: Deploy the updated ECS task definition
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
@@ -90,8 +72,3 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
-
-    # Optional Step 10: Clean up unused images in ECR
-    - name: Clean up ECR
-      run: |
-        aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids imageTag=$IMAGE_TAG
