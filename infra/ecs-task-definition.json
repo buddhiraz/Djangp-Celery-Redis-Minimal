@@ -3,7 +3,7 @@
     "containerDefinitions": [
       {
         "name": "django",
-        "image": "<IMAGE_URL_FROM_ECR>",  # This will be replaced during CI
+        "image": "<IMAGE_URL_FROM_ECR>",  
         "cpu": 256,
         "memory": 512,
         "essential": true,
