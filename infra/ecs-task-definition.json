@@ -1,5 +1,6 @@
 {
     "family": "django-task",
+     "executionRoleArn": "arn:aws:iam::826875819774:role/ecsTaskExecutionRole",  
     "containerDefinitions": [
       {
         "name": "django",
