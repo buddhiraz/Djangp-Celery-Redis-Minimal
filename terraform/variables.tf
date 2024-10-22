@@ -1,11 +1,49 @@
-variable "aws_region" {
-  default = "us-east-1"
+variable "region" {
+  description = "AWS region"
+  default     = "us-east-1"
 }
 
 variable "ecs_cluster_name" {
-  default = "360health-backend"
+  description = "ECS Cluster Name"
+  default     = "django-celery-redis-backend-cluster"
 }
 
 variable "ecs_service_name" {
-  default = "360health-backend-service"
+  description = "ECS Service Name"
+  default     = "django-celery-redis-backend-service"
+}
+
+variable "ecs_task_family" {
+  description = "ECS Task Family Name"
+  default     = "django-task"
+}
+
+variable "ecr_repository_name" {
+  description = "ECR Repository Name"
+  default     = "django-celery-redis-backend"
+}
+
+variable "image" {
+  description = "Docker image URI"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "VPC ID"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "List of Subnet IDs"
+  type        = list(string)
+}
+
+variable "container_port" {
+  description = "Container Port"
+  default     = 8000
+}
+
+variable "desired_count" {
+  description = "Desired number of ECS tasks"
+  default     = 1
 }
