@@ -124,23 +124,26 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
 }
 
 # ECS Task Definition
+
 resource "aws_ecs_task_definition" "task_definition" {
   family                   = var.ecs_task_family
   network_mode             = "awsvpc"
   execution_role_arn       = data.aws_iam_role.ecs_task_execution_role.arn
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = "512"
+  memory                   = "1024"
   requires_compatibilities = ["FARGATE"]
 
   container_definitions = templatefile("${path.module}/container_definitions.json.tpl", {
-    image          = var.image
-    container_name = var.ecs_task_family
-    container_port = var.container_port
-    region         = var.region
+    image                = var.image
+    container_name       = var.ecs_task_family
+    container_port       = var.container_port
+    redis_image          = "redis:6.2"  # Add Redis image
+    redis_container_name = "redis"
   })
 
   depends_on = [aws_cloudwatch_log_group.ecs_log_group]
 }
+
 
 # ECS Service
 resource "aws_ecs_service" "ecs_service" {
