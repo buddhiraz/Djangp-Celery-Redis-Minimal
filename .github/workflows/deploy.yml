@@ -87,3 +87,4 @@ jobs:
       working-directory: ./terraform
       run: terraform output
 
+
