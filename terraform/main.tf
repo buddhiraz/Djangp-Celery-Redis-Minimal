@@ -137,6 +137,7 @@ resource "aws_ecs_task_definition" "task_definition" {
     image                = var.image
     container_name       = var.ecs_task_family
     container_port       = var.container_port
+    region               = var.region
     redis_image          = "redis:6.2"  # Add Redis image
     redis_container_name = "redis"
   })
