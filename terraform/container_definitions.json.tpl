@@ -31,6 +31,27 @@
         "awslogs-region": "${region}",
         "awslogs-stream-prefix": "${container_name}"
       }
+    },
+    "dependsOn": [
+      {
+        "containerName": "redis",
+        "condition": "START"
+      }
+    ]
+  },
+  {
+    "name": "redis",
+    "image": "${redis_image}",
+    "essential": false,
+    "memory": 256,
+    "cpu": 256,
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/redis",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "redis"
+      }
     }
   }
 ]

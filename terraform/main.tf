@@ -17,6 +17,16 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+# Data Source for Existing ECR Repository
+data "aws_ecr_repository" "app_repo" {
+  name = var.ecr_repository_name
+}
+
+# Data Source for Existing IAM Role
+data "aws_iam_role" "ecs_task_execution_role" {
+  name = "ecsTaskExecutionRole"
+}
+
 # Create a VPC
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
@@ -73,32 +83,6 @@ resource "aws_route_table_association" "public_rta" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-# ECR Repository
-resource "aws_ecr_repository" "app_repo" {
-  name = var.ecr_repository_name
-}
-
-# IAM Role for ECS Task Execution
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "ecsTaskExecutionRole"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role_policy.json
-}
-
-data "aws_iam_policy_document" "ecs_task_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
 # ECS Cluster
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.ecs_cluster_name
@@ -130,21 +114,24 @@ resource "aws_security_group" "ecs_service_sg" {
 }
 
 # ECS Task Definition
+
 resource "aws_ecs_task_definition" "task_definition" {
   family                   = var.ecs_task_family
   network_mode             = "awsvpc"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  cpu                      = "256"
-  memory                   = "512"
+  execution_role_arn       = data.aws_iam_role.ecs_task_execution_role.arn
+  cpu                      = "512"
+  memory                   = "1024"
   requires_compatibilities = ["FARGATE"]
 
   container_definitions = templatefile("${path.module}/container_definitions.json.tpl", {
-    image          = var.image
-    container_name = var.ecs_task_family
-    container_port = var.container_port
-    region         = var.region
+    image                = var.image
+    container_name       = var.ecs_task_family
+    container_port       = var.container_port
+    redis_image          = "redis:6.2"  # Add Redis image
+    redis_container_name = "redis"
   })
 }
+
 
 # ECS Service
 resource "aws_ecs_service" "ecs_service" {
@@ -159,10 +146,6 @@ resource "aws_ecs_service" "ecs_service" {
     security_groups = [aws_security_group.ecs_service_sg.id]
     assign_public_ip = true
   }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.ecs_task_execution_role_policy,
-  ]
 }
 
 # Output ECS Service Details
