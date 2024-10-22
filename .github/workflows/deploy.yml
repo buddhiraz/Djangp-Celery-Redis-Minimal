@@ -73,10 +73,11 @@ jobs:
 
     - name: Plan Terraform deployment
       working-directory: ./terraform
-      run: terraform plan -out=tfplan -input=false \
-        -var="image=${{ env.IMAGE_URI }}" \
-        -var="vpc_id=${{ secrets.AWS_VPC_ID }}" \
-        -var='subnet_ids=${{ secrets.AWS_SUBNET_IDS }}'
+      env:
+        IMAGE_URI: ${{ env.IMAGE_URI }}
+      run: |
+        terraform plan -out=tfplan -input=false \
+          -var="image=$IMAGE_URI"
 
     - name: Apply Terraform deployment
       working-directory: ./terraform
