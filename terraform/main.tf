@@ -113,6 +113,16 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
+# Create CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "ecs_log_group" {
+  name              = "/ecs/${var.ecs_task_family}"
+  retention_in_days = 7
+
+  tags = {
+    Name = "/ecs/${var.ecs_task_family}"
+  }
+}
+
 # ECS Task Definition
 
 resource "aws_ecs_task_definition" "task_definition" {
@@ -130,6 +140,8 @@ resource "aws_ecs_task_definition" "task_definition" {
     redis_image          = "redis:6.2"  # Add Redis image
     redis_container_name = "redis"
   })
+
+  depends_on = [aws_cloudwatch_log_group.ecs_log_group]
 }
 
 
