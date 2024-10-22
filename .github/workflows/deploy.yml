@@ -47,16 +47,6 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:latest" >> $GITHUB_ENV
 
-    - name: Initialize Terraform
-      working-directory: ./terraform  # Change this if your terraform files are in a different path
-      run: |
-        terraform init
-
-    - name: Apply Terraform
-      working-directory: ./terraform
-      run: |
-        terraform apply -auto-approve
-
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
