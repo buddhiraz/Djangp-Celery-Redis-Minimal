@@ -32,18 +32,14 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y unzip
-        curl -L -o terraform.zip https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip
-        unzip terraform.zip
-        sudo mv terraform /usr/local/bin/
-        terraform -version
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.7
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -77,7 +73,10 @@ jobs:
 
     - name: Plan Terraform deployment
       working-directory: ./terraform
-      run: terraform plan -out=tfplan -input=false -var="image=${{ env.IMAGE_URI }}"
+      run: terraform plan -out=tfplan -input=false \
+        -var="image=${{ env.IMAGE_URI }}" \
+        -var="vpc_id=${{ secrets.AWS_VPC_ID }}" \
+        -var='subnet_ids=${{ secrets.AWS_SUBNET_IDS }}'
 
     - name: Apply Terraform deployment
       working-directory: ./terraform
@@ -86,5 +85,3 @@ jobs:
     - name: Output Terraform variables
       working-directory: ./terraform
       run: terraform output
-
-
