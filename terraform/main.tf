@@ -127,12 +127,12 @@ resource "aws_ecs_task_definition" "task_definition" {
   network_mode              = "awsvpc"
   execution_role_arn        = data.aws_iam_role.ecs_task_execution_role.arn
   container_definitions     = templatefile("${path.module}/container_definitions.json.tpl", {
-    container_name = "django"
-    image          = data.aws_ecr_repository.app_repo.repository_url
-    redis_image    = "redis:6.2"
-    container_port = var.container_port
-    region         = var.region
-
+    container_name  = "django"
+    image           = data.aws_ecr_repository.app_repo.repository_url
+    redis_image     = "redis:6.2"
+    container_port  = var.container_port
+    region          = var.region
+    ecs_service_name = var.ecs_service_name  
   })
   requires_compatibilities  = ["FARGATE"]
   memory                    = "1024"
@@ -140,6 +140,7 @@ resource "aws_ecs_task_definition" "task_definition" {
 
   depends_on = [aws_cloudwatch_log_group.ecs_log_group]
 }
+
 
 # ECS Service
 resource "aws_ecs_service" "ecs_service" {
