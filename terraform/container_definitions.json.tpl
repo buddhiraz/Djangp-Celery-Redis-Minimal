@@ -49,7 +49,7 @@
     "logDriver": "awslogs",
     "options": {
         "awslogs-group": "/ecs/django-celery-redis-backend-service",
-        "awslogs-create-group": "true",  // This ensures the log group is created if missing
+        "awslogs-create-group": "true",  
         "awslogs-region": "us-east-1",
         "awslogs-stream-prefix": "django"
     }
