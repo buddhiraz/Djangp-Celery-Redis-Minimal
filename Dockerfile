@@ -17,11 +17,13 @@ COPY . .
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Run database migrations and collect static files (if applicable)
-RUN python3 manage.py migrate
+# Ensure Celery commands are available
+# Set up a script to run either the Django app, Celery worker, or Celery beat
+COPY ./docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-# Expose the port the app runs on
+# Expose the port the app runs on (Django server)
 EXPOSE 8000
 
-# Command to run Django development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Default entry point is the script that will choose the command to run (Django, Celery worker, or beat)
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

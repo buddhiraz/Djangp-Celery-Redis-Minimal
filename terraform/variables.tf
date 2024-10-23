@@ -37,3 +37,25 @@ variable "desired_count" {
   description = "Desired number of ECS tasks"
   default     = 1
 }
+
+# New variables for Celery Worker and Celery Beat
+
+variable "celery_worker_memory" {
+  description = "Memory for the Celery worker"
+  default     = 512
+}
+
+variable "celery_worker_cpu" {
+  description = "CPU units for the Celery worker"
+  default     = 256
+}
+
+variable "celery_beat_memory" {
+  description = "Memory for the Celery beat"
+  default     = 256
+}
+
+variable "celery_beat_cpu" {
+  description = "CPU units for the Celery beat"
+  default     = 128
+}

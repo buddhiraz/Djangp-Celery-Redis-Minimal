@@ -86,3 +86,13 @@ jobs:
     - name: Output Terraform variables
       working-directory: ./terraform
       run: terraform output
+
+    # New Step: Fetch ECS Service Logs for Progress Monitoring
+    - name: Monitor ECS Service Logs (Django, Redis, Celery)
+      run: |
+        echo "Fetching ECS service logs..."
+        aws ecs list-tasks --cluster $ECS_CLUSTER_NAME --service-name $ECS_SERVICE_NAME --region $AWS_REGION
+        TASK_ARN=$(aws ecs list-tasks --cluster $ECS_CLUSTER_NAME --service-name $ECS_SERVICE_NAME --region $AWS_REGION --query 'taskArns[0]' --output text)
+        echo "Logs for Task: $TASK_ARN"
+        aws logs describe-log-streams --log-group-name "/ecs/${ECS_SERVICE_NAME}" --region $AWS_REGION
+        aws logs get-log-events --log-group-name "/ecs/${ECS_SERVICE_NAME}" --log-stream-name "<stream-name>" --region $AWS_REGION
