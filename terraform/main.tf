@@ -88,15 +88,13 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.ecs_cluster_name
 }
 
-# Security Group for ECS Tasks
+# Security Group for ECS Service
 resource "aws_security_group" "ecs_service_sg" {
-  name        = "ecs_service_sg"
-  description = "Security group for ECS service"
-  vpc_id      = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = var.container_port
-    to_port     = var.container_port
+    from_port   = 0
+    to_port     = 65535
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -113,37 +111,34 @@ resource "aws_security_group" "ecs_service_sg" {
   }
 }
 
-# Create CloudWatch Log Group
+# Create CloudWatch Log Group for ECS tasks
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
-  name              = "/ecs/${var.ecs_task_family}"
-  retention_in_days = 7
+  name              = "/ecs/${var.ecs_service_name}"
+  retention_in_days = 30
 
   tags = {
-    Name = "/ecs/${var.ecs_task_family}"
+    Name = "${var.ecs_service_name}-log-group"
   }
 }
 
 # ECS Task Definition
-
 resource "aws_ecs_task_definition" "task_definition" {
   family                   = var.ecs_task_family
-  network_mode             = "awsvpc"
-  execution_role_arn       = data.aws_iam_role.ecs_task_execution_role.arn
-  cpu                      = "512"
-  memory                   = "1024"
-  requires_compatibilities = ["FARGATE"]
-
-  container_definitions = templatefile("${path.module}/container_definitions.json.tpl", {
-    image                = var.image
-    container_name       = var.ecs_task_family
-    container_port       = var.container_port
-    redis_image          = "redis:6.2"  # Add Redis image
-    redis_container_name = "redis"
+  network_mode              = "awsvpc"
+  execution_role_arn        = data.aws_iam_role.ecs_task_execution_role.arn
+  container_definitions     = templatefile("${path.module}/container_definitions.json.tpl", {
+    container_name = "django"
+    image          = data.aws_ecr_repository.app_repo.repository_url
+    redis_image    = "redis:6.2"
+    container_port = var.container_port
+    region         = var.region
   })
+  requires_compatibilities  = ["FARGATE"]
+  memory                    = "1024"
+  cpu                       = "512"
 
   depends_on = [aws_cloudwatch_log_group.ecs_log_group]
 }
-
 
 # ECS Service
 resource "aws_ecs_service" "ecs_service" {
