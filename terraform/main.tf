@@ -132,6 +132,7 @@ resource "aws_ecs_task_definition" "task_definition" {
     redis_image    = "redis:6.2"
     container_port = var.container_port
     region         = var.region
+
   })
   requires_compatibilities  = ["FARGATE"]
   memory                    = "1024"
