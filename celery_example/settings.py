@@ -25,13 +25,16 @@ SECRET_KEY = "django-insecure-%ef$ve^_qih&pu=zbnf!!4h460m43d$wwds*_n8jokonzfw-wy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
-
 ALLOWED_HOSTS = ['*',
                  "http://54.221.42.183:8000",
                  "http://34.227.228.45:8000",
                 
                 ]
+
+# Add the ECS task public IP dynamically
+public_ip = os.getenv('PUBLIC_IP')
+if public_ip:
+    ALLOWED_HOSTS.append(public_ip)
 
 
 
