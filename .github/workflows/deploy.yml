@@ -86,8 +86,8 @@ jobs:
     - name: Output Terraform variables
       working-directory: ./terraform
       run: terraform output
-    - name: Wait for ECS task to start
-      run: sleep 30  # Adjust the delay as needed
+    - name: Wait for ECS task to generate logs
+      run: sleep 100  
 
     - name: Fetch ECS Task and Logs
       run: |
