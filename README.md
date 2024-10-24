@@ -128,6 +128,3 @@ This setup allows the Django app to remain responsive to users, even when handli
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
-This README provides clear instructions on how to run the application locally with Docker Compose and explains how Django, Celery, and Redis work together to handle asynchronous tasks. Let me know if you need any more details!
