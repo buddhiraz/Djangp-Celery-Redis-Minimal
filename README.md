@@ -1,4 +1,3 @@
-
 # Django, Celery, Redis - Async Task Management
 
 A Dockerized Django application with Celery and Redis for handling asynchronous tasks. This setup allows for executing background jobs in Django using Celery workers, with Redis acting as a message broker.
@@ -9,6 +8,7 @@ A Dockerized Django application with Celery and Redis for handling asynchronous 
 - **Celery**: A distributed task queue system for handling asynchronous or scheduled tasks.
 - **Redis**: An in-memory data store used as the message broker for Celery to manage task queues and results.
 - **Docker & Docker Compose**: Containers for easy local setup and deployment.
+- **AWS Deployment**: Deploy to AWS using ECS, Terraform, and GitHub Actions for automated CI/CD.
 
 ## Prerequisites
 
@@ -16,13 +16,15 @@ Make sure you have the following installed on your machine:
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [Terraform](https://www.terraform.io/downloads)
 
 ## Local Setup Instructions
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
-   cd your-repo-name
+   git clone git@github.com:buddhiraz/Djangp-Celery-Redis-Minimal.git
+   cd Djangp-Celery-Redis-Minimal
    ```
 
 2. **Build and Start the Containers**:
@@ -47,6 +49,80 @@ Make sure you have the following installed on your machine:
    docker-compose down
    ```
 
+## Deployment Instructions
+
+### AWS Deployment Steps
+
+The deployment uses **AWS ECS**, **Terraform**, and **GitHub Actions** for CI/CD:
+
+1. **AWS Resources Setup**:
+   - An ECS Cluster is created using Terraform.
+   - The Django, Celery worker, and Redis containers are deployed using ECS tasks.
+   - A CloudWatch Log Group is configured to capture logs from the containers.
+   - Network resources like VPC, subnets, security groups, and an Internet Gateway are created using Terraform.
+
+2. **GitHub Actions CI/CD**:
+   - The GitHub Actions workflow handles the build and deployment process.
+   - Docker images are built and pushed to Amazon ECR.
+   - Terraform manages the infrastructure as code for consistent deployments.
+   - The public IP of the ECS service is retrieved and used to update Django's `ALLOWED_HOSTS`.
+
+### Deployment Steps
+
+1. **Clone the Repository**:
+   ```bash
+   git clone git@github.com:buddhiraz/Djangp-Celery-Redis-Minimal.git
+   cd Djangp-Celery-Redis-Minimal
+   ```
+
+2. **Deploy with GitHub Actions**:
+   - Push changes to the `main` branch to trigger the GitHub Actions workflow for deployment.
+   - The workflow will:
+     1. Build Docker images.
+     2. Push images to Amazon ECR.
+     3. Deploy using Terraform to AWS ECS.
+
+3. **Access the Application**:
+   - After deployment, GitHub Actions will output the public IP of the ECS service.
+   - Use the public IP to access the Django application.
+
+## AWS, Terraform, GitHub Actions Workflow
+
+```mermaid
+graph TD
+    A[GitHub Actions] --> B[Build Docker Images]
+    B --> C[Push to Amazon ECR]
+    C --> D[Terraform Deployment]
+
+    subgraph Terraform Deployment
+        D --> E[Provision ECS Cluster]
+        D --> F[Deploy Containers to ECS]
+        D --> G[Configure CloudWatch Logs]
+        D --> H[Create VPC and Network Resources]
+    end
+
+    I[AWS Infrastructure] --> E
+    I --> F
+    I --> G
+    I --> H
+```
+
+### AWS Resources Used
+
+Below are the AWS resources that are managed by Terraform during deployment:
+
+```mermaid
+graph LR
+    A[VPC] --> B[Public Subnets]
+    A --> C[Internet Gateway]
+    B --> D[Security Groups]
+    D --> E[ECS Cluster]
+    E --> F[ECS Task Definitions]
+    F --> G[ECS Service]
+    G --> H[Docker Containers]
+    H --> I[CloudWatch Log Group]
+```
+
 ## Project Structure
 
 ```
@@ -61,6 +137,11 @@ Make sure you have the following installed on your machine:
 ├── Dockerfile              # Dockerfile for building Django app
 ├── docker-compose.yml      # Docker Compose setup for Django, Redis, Celery
 ├── requirements.txt        # Python dependencies
+├── terraform               # Terraform configuration
+│   ├── main.tf             # Main Terraform file for AWS resources
+│   ├── variables.tf        # Terraform variables
+│   ├── outputs.tf          # Terraform output variables
+│   └── container_definitions.json.tpl # ECS task definition template
 └── README.md               # Project documentation
 ```
 
@@ -124,7 +205,4 @@ This setup allows the Django app to remain responsive to users, even when handli
 - **Celery Worker is not processing tasks**: Ensure that the Celery worker is running (`docker-compose up` should start it). Check the logs for any errors.
 - **Django errors**: Check the Django logs or use the Django debug toolbar to inspect any issues.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
