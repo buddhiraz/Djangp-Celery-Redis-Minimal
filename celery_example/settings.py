@@ -33,6 +33,7 @@ ALLOWED_HOSTS = ['*',
 
 # Add the ECS task public IP dynamically
 public_ip = os.getenv('PUBLIC_IP')
+print("____PUBLIC IP_____",public_ip)
 if public_ip:
     ALLOWED_HOSTS.append(public_ip)
 
