@@ -70,7 +70,8 @@ jobs:
     - name: Validate Terraform configuration
       working-directory: ./terraform
       run: terraform validate
-
+      
+        
     - name: Plan Terraform deployment
       working-directory: ./terraform
       env:

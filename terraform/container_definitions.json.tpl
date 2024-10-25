@@ -41,7 +41,7 @@
   },
   {
     "name": "redis",
-    "image": "redis:6.2",
+    "image": "${redis_image}",
     "essential": false,
     "memory": 256,
     "cpu": 256,
@@ -49,7 +49,7 @@
       "logDriver": "awslogs",
       "options": {
         "awslogs-group": "/ecs/django-celery-redis-backend-service",
-        "awslogs-create-group": "true",
+        "awslogs-create-group": "true",  
         "awslogs-region": "us-east-1",
         "awslogs-stream-prefix": "django"
       }
