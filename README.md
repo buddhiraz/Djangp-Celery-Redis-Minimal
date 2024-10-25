@@ -206,3 +206,105 @@ This setup allows the Django app to remain responsive to users, even when handli
 - **Django errors**: Check the Django logs or use the Django debug toolbar to inspect any issues.
 
 
+### **How is the Terraform files being used for deployment ?**
+1. **`main.tf`**: 
+   - The core Terraform file that defines infrastructure resources such as VPC, ECS Cluster, ECS Task Definitions, Security Groups, and ECS Services.
+   - It also sets up data sources to fetch existing resources like IAM roles and ECR repositories.
+   - Contains resource dependencies and outputs like ECS service and cluster information.
+
+2. **`variables.tf`**:
+   - Defines variables for the Terraform configuration. These variables can be set dynamically (e.g., Docker image URI).
+   - Helps to manage reusable configurations like AWS region, ECS cluster names, and Docker image.
+
+3. **`outputs.tf`**:
+   - Defines outputs to retrieve information about the created resources, like ECS cluster IDs or ECR repository URLs.
+   - These outputs can be referenced or used for debugging.
+
+4. **`container_definitions.json.tpl`**:
+   - A template file that contains the JSON definition for containers in the ECS task.
+   - It uses Terraform variables for dynamic configuration (e.g., Docker image, environment variables).
+   - Allows you to control how containers are configured without hardcoding values.
+
+### **GitHub Actions Workflow Integration**
+The GitHub Actions workflow is responsible for:
+1. **Building** and **pushing** a Docker image to ECR.
+2. **Setting up** AWS credentials and configuring Terraform to interact with AWS.
+3. **Passing the Docker image URI** as a dynamic variable to Terraform.
+4. **Running Terraform commands** to deploy or update the infrastructure.
+
+### **Step-by-Step Workflow Breakdown**
+1. **GitHub Actions Start**: On a push to the `main` branch, the GitHub Actions workflow is triggered.
+   - It sets environment variables like AWS region, ECR repository, and Terraform backend configuration.
+
+2. **Docker Build and Push**:
+   - Docker builds an image from the repository and tags it using the Git commit SHA.
+   - The image is pushed to ECR, and the image URI is captured as `IMAGE_URI`.
+
+3. **Terraform Initialization**:
+   - Terraform is initialized (`terraform init`) with backend configuration using S3 and DynamoDB for state management.
+   - This ensures the state is maintained consistently across deployments.
+
+4. **Terraform Planning**:
+   - `terraform plan` is executed using the dynamically provided `IMAGE_URI`.
+   - It generates a deployment plan to update ECS with the new Docker image.
+
+5. **Terraform Apply**:
+   - `terraform apply` deploys the planned infrastructure, updating the ECS Task Definition to use the new Docker image.
+   - ECS automatically updates the service with the latest task definition.
+
+### **Mermaid Chart: GitHub Actions to Terraform to ECS Workflow**
+
+Here's the visualization of the workflow:
+
+```mermaid
+flowchart TD
+    subgraph GitHub_Actions
+        A1[GitHub Push to main] --> A2[Trigger GitHub Actions Workflow]
+        A2 --> A3[Build Docker Image]
+        A3 --> A4[Tag Docker Image with Commit SHA]
+        A4 --> A5[Push Image to ECR]
+        A5 --> A6[Set IMAGE_URI Environment Variable]
+        A6 --> A7[Initialize Terraform]
+        A7 --> A8[Run terraform plan with IMAGE_URI]
+        A8 --> A9[Apply terraform plan]
+    end
+
+    subgraph Terraform
+        T1[Initialize Backend with S3 and DynamoDB] --> T2[Load Variables from variables.tf]
+        T2 --> T3[Use container_definitions.json.tpl]
+        T3 --> T4[Create/Update ECS Task Definition]
+        T4 --> T5[Update ECS Service]
+        T5 --> T6[Output Information from outputs.tf]
+    end
+
+    subgraph AWS_ECS
+        E1[ECR Stores Docker Image] --> E2[ECS Pulls Image from ECR]
+        E2 --> E3[Run Containers using ECS Task Definition]
+        E3 --> E4[ECS Service Updated with New Containers]
+    end
+
+    A9 --> T1
+    T4 --> E2
+```
+
+### **Detailed Steps in the Chart**
+1. **GitHub Actions**:
+   - Triggers when there is a new commit to the `main` branch.
+   - Handles Docker image build and push to ECR.
+   - Sets the Docker image URI dynamically for Terraform deployment.
+
+2. **Terraform Execution**:
+   - Uses the `variables.tf` file to load parameters like region, ECR repository, and image.
+   - References `container_definitions.json.tpl` to define container behavior dynamically.
+   - Creates or updates the ECS task definition with the new Docker image.
+   - Outputs key information for ECS service and cluster.
+
+3. **AWS ECS**:
+   - Pulls the updated Docker image from ECR using the new task definition.
+   - Deploys the updated containers, ensuring the latest application version runs on ECS.
+
+### **Key Takeaways**
+- **Dynamic Docker Image Handling**: The GitHub Actions workflow ensures that every deployment uses the specific Docker image built from the latest commit, avoiding issues with using a static `latest` tag.
+- **State Management**: Terraform maintains the state in S3, ensuring consistency in infrastructure deployments.
+- **AWS Infrastructure**: The ECS service is updated automatically with the new Docker image using the revised task definition, minimizing manual updates.
+
