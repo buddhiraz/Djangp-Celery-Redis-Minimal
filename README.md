@@ -173,7 +173,7 @@ This setup allows the Django app to remain responsive to users, even when handli
 
 ## Running Celery Tasks
 
-- You can trigger a background task by calling a Celery task in your Django views or shell.
+- You can trigger a simple background task by calling a Celery task in your Django views or shell.
   
   For example, if you have a task in `tasks.py` like this:
 
