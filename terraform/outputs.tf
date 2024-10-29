@@ -10,11 +10,14 @@ output "ecs_service_name" {
   value       = aws_ecs_service.ecs_service.name
 }
 
-# Output the Public IP addresses of ECS Tasks (only if public IP is assigned)
-output "ecs_task_public_ips" {
-  description = "Public IP addresses assigned to ECS tasks"
-  value       = [
-    for eni in aws_network_interface.ecs_service_enis : eni.association.public_ip
-  ]
+# Fetch Public IP of ECS Task
+data "aws_ecs_task" "task" {
+  cluster = aws_ecs_cluster.ecs_cluster.id
+  task_arn = aws_ecs_service.ecs_service.task_arns[0]
   depends_on = [aws_ecs_service.ecs_service]
+}
+
+output "ecs_task_public_ip" {
+  description = "Public IP address of the ECS task"
+  value       = data.aws_ecs_task.task.network_interfaces[0].association.public_ip
 }
