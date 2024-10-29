@@ -3,6 +3,8 @@
     "name": "${container_name}",
     "image": "${image}",
     "essential": true,
+    "memory": 512,
+    "cpu": 256,
     "portMappings": [
       {
         "containerPort": ${container_port},
@@ -65,6 +67,8 @@
     "name": "celery",
     "image": "${image}",
     "essential": true,
+    "memory": 512,
+    "cpu": 256,
     "environment": [
       {
         "name": "CELERY_BROKER_URL",
@@ -94,6 +98,8 @@
     "name": "celery-beat",
     "image": "${image}",
     "essential": true,
+    "memory": 512,
+    "cpu": 256,
     "environment": [
       {
         "name": "CELERY_BROKER_URL",
