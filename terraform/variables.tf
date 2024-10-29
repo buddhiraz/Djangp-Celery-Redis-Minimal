@@ -52,9 +52,9 @@ variable "redis_image" {
   default     = "redis:6.2"
 }
 
-# Container Port for Application
-variable "container_port" {
-  description = "Port the Django application will run on"
-  type        = number
-  default     = 8000
+# Container Name for Application
+variable "container_name" {
+  description = "Name of the container in ECS task definition"
+  type        = string
+  default     = "django"
 }
