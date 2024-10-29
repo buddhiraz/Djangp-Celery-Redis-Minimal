@@ -1,29 +1,25 @@
-# Use official Python image as a base
-FROM python:3.10
+# Base image
+FROM python:3.10-slim
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements.txt file
-COPY requirements.txt .
-
 # Install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application files
+# Copy application files
 COPY . .
 
-# Set environment variables for Django
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Ensure Celery commands are available
-# Set up a script to run either the Django app, Celery worker, or Celery beat
-COPY ./docker-entrypoint.sh /app/docker-entrypoint.sh
+# Ensure entrypoint script is executable
 RUN chmod +x /app/docker-entrypoint.sh
 
-# Expose the port the app runs on (Django server)
+# Environment variables for Django
+ENV DJANGO_SETTINGS_MODULE=celery_example.settings
+ENV PYTHONUNBUFFERED=1
+
+# Expose port for Django
 EXPOSE 8000
 
-# Default entry point is the script that will choose the command to run (Django, Celery worker, or beat)
+# Set entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

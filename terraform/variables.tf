@@ -1,61 +1,60 @@
+# AWS Region
 variable "region" {
-  description = "AWS region"
+  description = "AWS region to deploy resources"
+  type        = string
   default     = "us-east-1"
 }
 
+# ECS Cluster Name
 variable "ecs_cluster_name" {
-  description = "ECS Cluster Name"
-  default     = "django-celery-redis-backend-cluster"
+  description = "Name of the ECS cluster"
+  type        = string
+  default     = "django-cluster"
 }
 
+# ECS Service Name
 variable "ecs_service_name" {
-  description = "ECS Service Name"
+  description = "Name of the ECS service"
+  type        = string
   default     = "django-celery-redis-backend-service"
 }
 
+# ECS Task Family
 variable "ecs_task_family" {
-  description = "ECS Task Family Name"
-  default     = "django-task"
-}
-
-variable "ecr_repository_name" {
-  description = "ECR Repository Name"
-  default     = "django-celery-redis-backend"
-}
-
-variable "image" {
-  description = "Docker image URI"
+  description = "Family name for the ECS task definition"
   type        = string
+  default     = "django-task-family"
 }
 
-variable "container_port" {
-  description = "Container Port"
-  default     = 8000
-}
-
+# Desired Count for ECS Service
 variable "desired_count" {
-  description = "Desired number of ECS tasks"
+  description = "Desired number of ECS tasks for the service"
+  type        = number
   default     = 1
 }
 
-# New variables for Celery Worker and Celery Beat
-
-variable "celery_worker_memory" {
-  description = "Memory for the Celery worker"
-  default     = 512
+# ECR Repository Name
+variable "ecr_repository_name" {
+  description = "ECR repository name to pull images from"
+  type        = string
 }
 
-variable "celery_worker_cpu" {
-  description = "CPU units for the Celery worker"
-  default     = 256
+# Container Image
+variable "image" {
+  description = "Docker image for the application"
+  type        = string
 }
 
-variable "celery_beat_memory" {
-  description = "Memory for the Celery beat"
-  default     = 256
+# Redis Container Image
+variable "redis_image" {
+  description = "Docker image for Redis"
+  type        = string
+  default     = "redis:6.2"
 }
 
-variable "celery_beat_cpu" {
-  description = "CPU units for the Celery beat"
-  default     = 128
+# Container Port for Application
+variable "container_port" {
+  description = "Port the Django application will run on"
+  type        = number
+  default     = 8000
 }

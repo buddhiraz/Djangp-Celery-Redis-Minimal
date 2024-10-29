@@ -71,15 +71,19 @@ jobs:
       working-directory: ./terraform
       run: terraform validate
       
-        
     - name: Plan Terraform deployment
       working-directory: ./terraform
       env:
         IMAGE_URI: ${{ env.IMAGE_URI }}
       run: |
         terraform plan -out=tfplan -input=false \
-          -var="image=$IMAGE_URI"
-        
+          -var="image=$IMAGE_URI" \
+          -var="region=${{ env.AWS_REGION }}" \
+          -var="ecs_cluster_name=${{ env.ECS_CLUSTER_NAME }}" \
+          -var="ecs_service_name=${{ env.ECS_SERVICE_NAME }}" \
+          -var="container_name=${{ env.CONTAINER_NAME }}" \
+          -var="ecr_repository_name=${{ env.ECR_REPOSITORY }}" \
+          -var="desired_count=1"
 
     - name: Apply Terraform deployment
       working-directory: ./terraform

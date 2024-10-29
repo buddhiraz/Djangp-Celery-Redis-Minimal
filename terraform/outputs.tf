@@ -1,23 +1,20 @@
-# Output ECR Repository URL
-output "ecr_repository_url" {
-  description = "ECR Repository URL"
-  value       = data.aws_ecr_repository.app_repo.repository_url
-}
-
-# Output ECS Cluster ID
+# Output the ECS Cluster ID
 output "ecs_cluster_id" {
-  description = "ECS Cluster ID"
+  description = "ID of the ECS Cluster"
   value       = aws_ecs_cluster.ecs_cluster.id
 }
 
-# Output ECS Service Name
+# Output the ECS Service Name
 output "ecs_service_name" {
-  description = "ECS Service Name"
+  description = "Name of the ECS Service"
   value       = aws_ecs_service.ecs_service.name
 }
 
-# Output ECS Task Definition ARN
-output "ecs_task_definition_arn" {
-  description = "ECS Task Definition ARN"
-  value       = aws_ecs_task_definition.task_definition.arn
+# Output the Public IP addresses of ECS Tasks (only if public IP is assigned)
+output "ecs_task_public_ips" {
+  description = "Public IP addresses assigned to ECS tasks"
+  value       = [
+    for eni in aws_network_interface.ecs_service_enis : eni.association.public_ip
+  ]
+  depends_on = [aws_ecs_service.ecs_service]
 }

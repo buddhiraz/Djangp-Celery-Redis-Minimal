@@ -37,7 +37,8 @@
         "containerName": "redis",
         "condition": "START"
       }
-    ]
+    ],
+    "command": ["/app/docker-entrypoint.sh"]
   },
   {
     "name": "redis",
@@ -55,8 +56,7 @@
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "/ecs/django-celery-redis-backend-service",
-        "awslogs-create-group": "true",
+        "awslogs-group": "/ecs/${ecs_service_name}",
         "awslogs-region": "${region}",
         "awslogs-stream-prefix": "redis"
       }
