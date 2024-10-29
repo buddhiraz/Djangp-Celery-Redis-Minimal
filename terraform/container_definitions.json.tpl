@@ -3,8 +3,6 @@
     "name": "${container_name}",
     "image": "${image}",
     "essential": true,
-    "memory": 512,
-    "cpu": 256,
     "portMappings": [
       {
         "containerPort": ${container_port},
@@ -12,6 +10,8 @@
         "protocol": "tcp"
       }
     ],
+    "cpu": 256,
+    "memory": 512,
     "environment": [
       {
         "name": "DJANGO_SETTINGS_MODULE",
@@ -44,9 +44,9 @@
   {
     "name": "redis",
     "image": "${redis_image}",
-    "essential": false,
+    "essential": true,
+    "cpu": 128,
     "memory": 256,
-    "cpu": 256,
     "portMappings": [
       {
         "containerPort": 6379,
@@ -66,9 +66,9 @@
   {
     "name": "celery",
     "image": "${image}",
-    "essential": true,
-    "memory": 512,
-    "cpu": 256,
+    "essential": false,
+    "cpu": 64,
+    "memory": 128,
     "environment": [
       {
         "name": "CELERY_BROKER_URL",
@@ -86,20 +86,14 @@
         "awslogs-region": "${region}",
         "awslogs-stream-prefix": "celery"
       }
-    },
-    "dependsOn": [
-      {
-        "containerName": "redis",
-        "condition": "START"
-      }
-    ]
+    }
   },
   {
     "name": "celery-beat",
     "image": "${image}",
-    "essential": true,
-    "memory": 512,
-    "cpu": 256,
+    "essential": false,
+    "cpu": 64,
+    "memory": 128,
     "environment": [
       {
         "name": "CELERY_BROKER_URL",
@@ -117,12 +111,6 @@
         "awslogs-region": "${region}",
         "awslogs-stream-prefix": "celery-beat"
       }
-    },
-    "dependsOn": [
-      {
-        "containerName": "redis",
-        "condition": "START"
-      }
-    ]
+    }
   }
 ]
