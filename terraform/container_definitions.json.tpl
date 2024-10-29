@@ -45,14 +45,78 @@
     "essential": false,
     "memory": 256,
     "cpu": 256,
+    "portMappings": [
+      {
+        "containerPort": 6379,
+        "hostPort": 6379,
+        "protocol": "tcp"
+      }
+    ],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "/ecs/django-celery-redis-backend-service",
-        "awslogs-create-group": "true",  
-        "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "django"
+        "awslogs-group": "/ecs/${ecs_service_name}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "redis"
       }
     }
+  },
+  {
+    "name": "celery",
+    "image": "${image}",
+    "essential": true,
+    "environment": [
+      {
+        "name": "CELERY_BROKER_URL",
+        "value": "redis://redis:6379/0"
+      },
+      {
+        "name": "CELERY_RESULT_BACKEND",
+        "value": "redis://redis:6379/0"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/${ecs_service_name}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "celery"
+      }
+    },
+    "dependsOn": [
+      {
+        "containerName": "redis",
+        "condition": "START"
+      }
+    ]
+  },
+  {
+    "name": "celery-beat",
+    "image": "${image}",
+    "essential": true,
+    "environment": [
+      {
+        "name": "CELERY_BROKER_URL",
+        "value": "redis://redis:6379/0"
+      },
+      {
+        "name": "CELERY_RESULT_BACKEND",
+        "value": "redis://redis:6379/0"
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/${ecs_service_name}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "celery-beat"
+      }
+    },
+    "dependsOn": [
+      {
+        "containerName": "redis",
+        "condition": "START"
+      }
+    ]
   }
 ]
