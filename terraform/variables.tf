@@ -51,6 +51,13 @@ variable "redis_image" {
   type        = string
   default     = "redis:6.2"
 }
+# Container Port for Application
+variable "container_port" {
+  description = "Port the Django application will run on"
+  type        = number
+  default     = 8000
+}
+
 
 # Container Name for Application
 variable "container_name" {
