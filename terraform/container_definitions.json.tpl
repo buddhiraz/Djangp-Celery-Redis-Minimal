@@ -10,20 +10,20 @@
         "protocol": "tcp"
       }
     ],
-    "environment": [
-      {
-        "name": "DJANGO_SETTINGS_MODULE",
-        "value": "celery_example.settings"
-      },
-      {
-        "name": "CELERY_BROKER_URL",
-        "value": "redis://redis:6379/0"
-      },
-      {
-        "name": "CELERY_RESULT_BACKEND",
-        "value": "redis://redis:6379/0"
-      }
-    ],
+   "environment": [
+  {
+    "name": "DJANGO_SETTINGS_MODULE",
+    "value": "celery_example.settings"
+  },
+  {
+    "name": "CELERY_BROKER_URL",
+    "value": "redis://localhost:6379/0"
+  },
+  {
+    "name": "CELERY_RESULT_BACKEND",
+    "value": "redis://localhost:6379/0"
+  }
+],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
