@@ -101,3 +101,4 @@ jobs:
         PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --region $AWS_REGION --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
         echo "Public IP: $PUBLIC_IP"
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+
