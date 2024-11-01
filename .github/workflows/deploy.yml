@@ -21,6 +21,7 @@ permissions:
 
 jobs:
   deploy:
+    if: contains(github.event.head_commit.message, 'DEPLOY')
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
@@ -101,4 +102,3 @@ jobs:
         PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --region $AWS_REGION --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
         echo "Public IP: $PUBLIC_IP"
         echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-
